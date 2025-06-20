@@ -1,4 +1,4 @@
-Shift Date,Staff No,Staff Name,Shift Start Time,Shift End Time,Clock In Time,Clock Out Time,ShiftTT,ClockTT,Delta,reporting_officer_name,Age,OT? If yes, help us understand why not submitted yet   
+Shift Date,Staff No,Staff Name,Shift Start Time,Shift End Time,Clock In Time,Clock Out Time,ShiftTT,ClockTT,Delta,reporting_officer_name,Age,OT Status
 01-06-2025,00115085,Rahim Bin Artali,08:00,16:00,06:45,17:12,8:00,10:27,2:27,Mohd Hafizi Bin Samsudin,2,Staff did not write on OT form
 01-06-2025,00126063,Lee Chun Siang,00:00,08:00,23:05,08:48,8:00,9:43,1:43,Tan Say Hong,2,OT not claimed due to late departure
 01-06-2025,00137458,Nurul Afiqah,16:00,00:00,14:59,01:22,8:00,10:23,2:23,Aminah Binte Harun,1,Not claiming OT

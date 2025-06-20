@@ -76,7 +76,7 @@ async function loadData() {
             delta: parseDelta(d['Delta']),
             reportingOfficer: d['reporting_officer_name'],
             age: +d['Age'] || 0,
-            otStatus: d['OT? If yes, help us understand why not submitted yet   '] || '',
+            otStatus: d['OT Status'] || '',
             shiftType: getShiftType(d['Shift Start Time'], d['Shift End Time']),
             isPotentialOT: parseDelta(d['Delta']) > 0.5
         }));
