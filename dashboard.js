@@ -172,8 +172,8 @@ function updateOTStatusChart() {
     const statusData = Array.from(statusCounts, ([status, count]) => ({ status, count }))
         .sort((a, b) => b.count - a.count);
 
-    const width = 350;
-    const height = 250;
+    const width = 280;
+    const height = 200;
     const radius = Math.min(width, height) / 2 - 10;
 
     const svg = container.append('svg')
@@ -212,8 +212,8 @@ function updateDeltaHistogram() {
     const container = d3.select('#delta-histogram');
     container.selectAll('*').remove();
 
-    const width = 350;
-    const height = 200;
+    const width = 280;
+    const height = 180;
     const margin = config.margins;
 
     const svg = container.append('svg').attr('width', width).attr('height', height);
@@ -249,8 +249,8 @@ function updateDailyTrend() {
     const container = d3.select('#daily-trend');
     container.selectAll('*').remove();
 
-    const width = 700;
-    const height = 250;
+    const width = 580;
+    const height = 200;
     const margin = config.margins;
 
     const svg = container.append('svg').attr('width', width).attr('height', height);
@@ -296,7 +296,7 @@ function updateDailyTrend() {
         .on('mouseout', hideTooltip);
 
     g.append('g').attr('class', 'axis').attr('transform', `translate(0, ${chartHeight})`)
-        .call(d3.axisBottom(x).tickFormat(d3.timeFormat('%m/%d')));
+        .call(d3.axisBottom(x).tickFormat(d3.timeFormat('%m/%d')).ticks(5));
     g.append('g').attr('class', 'axis').call(d3.axisLeft(y1));
 
     const legend = container.append('div').attr('class', 'legend');
@@ -318,14 +318,14 @@ function updateStaffPerformance() {
         }),
         d => d.staffName
     ).map(([name, stats]) => ({
-        name: name.length > 12 ? name.substring(0, 12) + '...' : name,
+        name: name.length > 10 ? name.substring(0, 10) + '...' : name,
         fullName: name,
         ...stats
-    })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, 8);
+    })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, 6);
 
-    const width = 350;
-    const height = 250;
-    const margin = { ...config.margins, left: 80 };
+    const width = 280;
+    const height = 180;
+    const margin = { ...config.margins, left: 70 };
 
     const svg = container.append('svg').attr('width', width).attr('height', height);
     const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
@@ -362,8 +362,8 @@ function updateShiftAnalysis() {
         d => d.shiftType
     ).map(([type, stats]) => ({ type, ...stats }));
 
-    const width = 350;
-    const height = 200;
+    const width = 280;
+    const height = 180;
     const margin = config.margins;
 
     const svg = container.append('svg').attr('width', width).attr('height', height);
@@ -401,14 +401,14 @@ function updateOfficerOverview() {
         }),
         d => d.reportingOfficer
     ).map(([officer, stats]) => ({
-        officer: officer.length > 15 ? officer.substring(0, 15) + '...' : officer,
+        officer: officer.length > 18 ? officer.substring(0, 18) + '...' : officer,
         fullOfficer: officer,
         ...stats
     })).sort((a, b) => b.total - a.total);
 
-    const width = 700;
-    const height = 250;
-    const margin = { ...config.margins, left: 120 };
+    const width = 900;
+    const height = 200;
+    const margin = { ...config.margins, left: 130 };
 
     const svg = container.append('svg').attr('width', width).attr('height', height);
     const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);

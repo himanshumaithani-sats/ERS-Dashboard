@@ -76,43 +76,52 @@
 
         .dashboard {
             max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
+            margin: 1rem auto;
+            padding: 0 1rem;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
         }
 
         .chart-container {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 2rem;
+            border-radius: 8px;
+            padding: 1rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
+            height: fit-content;
         }
 
         .chart-container.full-width {
             grid-column: 1 / -1;
         }
 
+        .chart-container.two-thirds {
+            grid-column: span 2;
+        }
+
         .chart-title {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
             color: #2c3e50;
             text-align: center;
         }
 
         .chart-subtitle {
-            font-size: 1rem;
+            font-size: 0.85rem;
             color: #7f8c8d;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .axis text {
-            font-size: 12px;
+            font-size: 11px;
             fill: #666;
+        }
+
+        .axis .tick text {
+            text-anchor: start;
         }
 
         .axis path,
@@ -166,15 +175,16 @@
 
         .filters {
             background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
-            margin: 2rem auto;
+            padding: 0.75rem 1rem;
+            margin: 1rem auto;
             max-width: 1400px;
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
             align-items: center;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .filter-group {
@@ -204,37 +214,48 @@
 
         .insights-panel {
             background: rgba(255, 255, 255, 0.95);
-            padding: 2rem;
-            margin: 2rem auto;
+            padding: 1rem;
+            margin: 1rem auto;
             max-width: 1400px;
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
         .insights-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 0.5rem;
         }
 
         .insight-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
-            border-radius: 8px;
+            padding: 1rem;
+            border-radius: 6px;
             text-align: center;
         }
 
         .insight-value {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .insight-label {
-            font-size: 1rem;
+            font-size: 0.85rem;
             opacity: 0.9;
+        }
+
+        @media (max-width: 1366px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+                max-width: 1200px;
+            }
+            
+            .chart-container.two-thirds {
+                grid-column: 1 / -1;
+            }
         }
 
         @media (max-width: 768px) {
@@ -256,6 +277,10 @@
             .filters {
                 flex-direction: column;
                 align-items: stretch;
+            }
+
+            .insights-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -286,7 +311,7 @@
 
     <div class="filters">
         <div class="filter-group">
-            <label>Date Range:</label>
+            <label>Date:</label>
             <select id="date-filter">
                 <option value="all">All Dates</option>
             </select>
@@ -324,7 +349,13 @@
             <div id="delta-histogram"></div>
         </div>
 
-        <div class="chart-container full-width">
+        <div class="chart-container">
+            <div class="chart-title">Shift Analysis</div>
+            <div class="chart-subtitle">Overtime patterns by shift type</div>
+            <div id="shift-analysis"></div>
+        </div>
+
+        <div class="chart-container two-thirds">
             <div class="chart-title">Daily Overtime Trend</div>
             <div class="chart-subtitle">Overtime hours and cases by date</div>
             <div id="daily-trend"></div>
@@ -334,12 +365,6 @@
             <div class="chart-title">Staff Performance</div>
             <div class="chart-subtitle">Average delta by staff member</div>
             <div id="staff-performance"></div>
-        </div>
-
-        <div class="chart-container">
-            <div class="chart-title">Shift Analysis</div>
-            <div class="chart-subtitle">Overtime patterns by shift type</div>
-            <div id="shift-analysis"></div>
         </div>
 
         <div class="chart-container full-width">
