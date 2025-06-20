@@ -220,28 +220,33 @@ function updateStatusChart() {
         percentage: (count / filteredData.length * 100).toFixed(1)
     })).sort((a, b) => b.count - a.count).slice(0, 6); // Show top 6 statuses
 
-    const plot = Plot.plot({
-        width: 250,
-        height: 160,
-        marginLeft: 90,
-        marginRight: 20,
-        marginTop: 10,
-        marginBottom: 20,
-        x: { label: "Count" },
-        y: { label: null },
-        marks: [
-            Plot.rect(statusData, {
-                x1: 0,
-                x2: "count",
-                y: "status",
-                fill: d => colors.status[d.fullStatus] || colors.primary,
-                tip: true,
-                title: d => `${d.fullStatus}: ${d.count} (${d.percentage}%)`
-            })
-        ]
-    });
+    console.log('Status chart data:', statusData);
 
-    container.appendChild(plot);
+    try {
+        const plot = Plot.plot({
+            width: 250,
+            height: 160,
+            marginLeft: 90,
+            marginRight: 20,
+            marginTop: 10,
+            marginBottom: 20,
+            x: { label: "Count" },
+            y: { label: null },
+            marks: [
+                Plot.barX(statusData, {
+                    x: "count",
+                    y: "status",
+                    fill: d => colors.status[d.fullStatus] || colors.primary,
+                    tip: true
+                })
+            ]
+        });
+
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Status chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 
     // Update legend
     const legend = document.getElementById('status-legend');
@@ -263,38 +268,32 @@ function updateDeltaChart() {
 
     const deltaValues = filteredData.map(d => d.delta).filter(d => !isNaN(d));
     
-    // Create histogram data manually for better control
-    const bins = d3.bin().thresholds(8)(deltaValues);
-    const histogramData = bins.map(bin => ({
-        x0: bin.x0,
-        x1: bin.x1,
-        count: bin.length,
-        midpoint: (bin.x0 + bin.x1) / 2
-    }));
+    console.log('Delta chart data:', deltaValues.length, 'values');
+    
+    try {
+        const plot = Plot.plot({
+            width: 250,
+            height: 160,
+            marginLeft: 40,
+            marginRight: 20,
+            marginTop: 10,
+            marginBottom: 30,
+            x: { label: "Delta (hours)" },
+            y: { label: "Count" },
+            marks: [
+                Plot.rectY(deltaValues, Plot.binX({y: "count"}, {
+                    x: d => d,
+                    fill: colors.primary,
+                    fillOpacity: 0.7
+                }))
+            ]
+        });
 
-    const plot = Plot.plot({
-        width: 250,
-        height: 160,
-        marginLeft: 40,
-        marginRight: 20,
-        marginTop: 10,
-        marginBottom: 30,
-        x: { label: "Delta (hours)" },
-        y: { label: "Count" },
-        marks: [
-            Plot.rect(histogramData, {
-                x1: "x0",
-                x2: "x1",
-                y1: 0,
-                y2: "count",
-                fill: colors.primary,
-                fillOpacity: 0.7,
-                title: d => `Range: ${formatDuration(d.x0)} to ${formatDuration(d.x1)}\nCount: ${d.count}`
-            })
-        ]
-    });
-
-    container.appendChild(plot);
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Delta chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 }
 
 function updateTrendChart() {
@@ -313,47 +312,51 @@ function updateTrendChart() {
         ...stats
     })).sort((a, b) => a.date - b.date);
 
-    const plot = Plot.plot({
-        width: 520,
-        height: 160,
-        marginLeft: 40,
-        marginRight: 40,
-        marginTop: 20,
-        marginBottom: 30,
-        x: { label: "Date", type: "time" },
-        y: { label: "Hours/Cases" },
-        color: { legend: true },
-        marks: [
-            Plot.line(dailyData, { 
-                x: "date", 
-                y: "totalHours", 
-                stroke: colors.primary, 
-                strokeWidth: 2,
-                title: d => `${d.date.toLocaleDateString()}: ${d.totalHours.toFixed(1)}h`
-            }),
-            Plot.line(dailyData, { 
-                x: "date", 
-                y: "potentialOT", 
-                stroke: colors.secondary, 
-                strokeWidth: 2,
-                title: d => `${d.date.toLocaleDateString()}: ${d.potentialOT} cases`
-            }),
-            Plot.dot(dailyData, { 
-                x: "date", 
-                y: "totalHours", 
-                fill: colors.primary, 
-                r: 3 
-            }),
-            Plot.dot(dailyData, { 
-                x: "date", 
-                y: "potentialOT", 
-                fill: colors.secondary, 
-                r: 3 
-            })
-        ]
-    });
+    console.log('Trend chart data:', dailyData);
 
-    container.appendChild(plot);
+    try {
+        const plot = Plot.plot({
+            width: 520,
+            height: 160,
+            marginLeft: 40,
+            marginRight: 40,
+            marginTop: 20,
+            marginBottom: 30,
+            x: { label: "Date", type: "time" },
+            y: { label: "Hours/Cases" },
+            marks: [
+                Plot.line(dailyData, { 
+                    x: "date", 
+                    y: "totalHours", 
+                    stroke: colors.primary, 
+                    strokeWidth: 2
+                }),
+                Plot.line(dailyData, { 
+                    x: "date", 
+                    y: "potentialOT", 
+                    stroke: colors.secondary, 
+                    strokeWidth: 2
+                }),
+                Plot.dot(dailyData, { 
+                    x: "date", 
+                    y: "totalHours", 
+                    fill: colors.primary, 
+                    r: 3 
+                }),
+                Plot.dot(dailyData, { 
+                    x: "date", 
+                    y: "potentialOT", 
+                    fill: colors.secondary, 
+                    r: 3 
+                })
+            ]
+        });
+
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Trend chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 }
 
 function updateStaffChart() {
@@ -373,27 +376,33 @@ function updateStaffChart() {
         ...stats
     })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, 6);
 
-    const plot = Plot.plot({
-        width: 250,
-        height: 160,
-        marginLeft: 80,
-        marginRight: 20,
-        marginTop: 10,
-        marginBottom: 20,
-        x: { label: "Avg Delta (hours)" },
-        y: { label: null },
-        marks: [
-            Plot.rect(staffData, {
-                x1: 0,
-                x2: "avgDelta",
-                y: "name",
-                fill: colors.accent,
-                title: d => `${d.fullName}: ${formatDuration(d.avgDelta)} (${d.count} records, ${d.potentialOT} potential OT)`
-            })
-        ]
-    });
+    console.log('Staff chart data:', staffData);
 
-    container.appendChild(plot);
+    try {
+        const plot = Plot.plot({
+            width: 250,
+            height: 160,
+            marginLeft: 80,
+            marginRight: 20,
+            marginTop: 10,
+            marginBottom: 20,
+            x: { label: "Avg Delta (hours)" },
+            y: { label: null },
+            marks: [
+                Plot.barX(staffData, {
+                    x: "avgDelta",
+                    y: "name",
+                    fill: colors.accent,
+                    tip: true
+                })
+            ]
+        });
+
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Staff chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 }
 
 function updateShiftChart() {
@@ -409,27 +418,33 @@ function updateShiftChart() {
         d => d.shiftType
     ).map(([type, stats]) => ({ type, ...stats }));
 
-    const plot = Plot.plot({
-        width: 250,
-        height: 160,
-        marginLeft: 40,
-        marginRight: 20,
-        marginTop: 10,
-        marginBottom: 30,
-        x: { label: "Shift Type" },
-        y: { label: "Count" },
-        marks: [
-            Plot.rect(shiftData, {
-                x: "type",
-                y1: 0,
-                y2: "count",
-                fill: (d, i) => [colors.primary, colors.secondary, colors.accent, colors.warning][i % 4],
-                title: d => `${d.type}: ${d.count} records\nAvg Delta: ${formatDuration(d.avgDelta)}\nPotential OT: ${d.potentialOT}`
-            })
-        ]
-    });
+    console.log('Shift chart data:', shiftData);
 
-    container.appendChild(plot);
+    try {
+        const plot = Plot.plot({
+            width: 250,
+            height: 160,
+            marginLeft: 40,
+            marginRight: 20,
+            marginTop: 10,
+            marginBottom: 30,
+            x: { label: "Shift Type" },
+            y: { label: "Count" },
+            marks: [
+                Plot.barY(shiftData, {
+                    x: "type",
+                    y: "count",
+                    fill: (d, i) => [colors.primary, colors.secondary, colors.accent, colors.warning][i % 4],
+                    tip: true
+                })
+            ]
+        });
+
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Shift chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 }
 
 function updateOfficerChart() {
@@ -449,36 +464,40 @@ function updateOfficerChart() {
         ...stats
     })).sort((a, b) => b.total - a.total);
 
-    const plot = Plot.plot({
-        width: 520,
-        height: 160,
-        marginLeft: 120,
-        marginRight: 20,
-        marginTop: 20,
-        marginBottom: 20,
-        x: { label: "Cases" },
-        y: { label: null },
-        color: { legend: true },
-        marks: [
-            Plot.rect(officerData, {
-                x1: 0,
-                x2: "total",
-                y: "officer",
-                fill: colors.primary,
-                fillOpacity: 0.3,
-                title: d => `${d.fullOfficer}: ${d.total} total cases`
-            }),
-            Plot.rect(officerData, {
-                x1: 0,
-                x2: "potentialOT",
-                y: "officer",
-                fill: colors.secondary,
-                title: d => `${d.fullOfficer}: ${d.potentialOT} potential OT cases\nAvg Delta: ${formatDuration(d.avgDelta)}`
-            })
-        ]
-    });
+    console.log('Officer chart data:', officerData);
 
-    container.appendChild(plot);
+    try {
+        const plot = Plot.plot({
+            width: 520,
+            height: 160,
+            marginLeft: 120,
+            marginRight: 20,
+            marginTop: 20,
+            marginBottom: 20,
+            x: { label: "Cases" },
+            y: { label: null },
+            marks: [
+                Plot.barX(officerData, {
+                    x: "total",
+                    y: "officer",
+                    fill: colors.primary,
+                    fillOpacity: 0.3,
+                    tip: true
+                }),
+                Plot.barX(officerData, {
+                    x: "potentialOT",
+                    y: "officer",
+                    fill: colors.secondary,
+                    tip: true
+                })
+            ]
+        });
+
+        container.appendChild(plot);
+    } catch (error) {
+        console.error('Officer chart error:', error);
+        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+    }
 }
 
 function updateInsights() {
