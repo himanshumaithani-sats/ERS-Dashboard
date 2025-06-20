@@ -60,36 +60,85 @@ function truncateText(text, maxLength) {
 
 function getContainerDimensions(containerId) {
     const container = document.getElementById(containerId);
+    if (!container) {
+        console.warn(`Container ${containerId} not found`);
+        return { width: 250, height: 160 };
+    }
+
     const rect = container.getBoundingClientRect();
+    const style = window.getComputedStyle(container);
     
-    // Ensure container has actual dimensions
-    if (rect.width === 0 || rect.height === 0) {
-        console.warn(`Container ${containerId} has zero dimensions`);
-        return { width: 250, height: 160 }; // fallback
+    // Account for padding
+    const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    
+    // Calculate available space
+    const availableWidth = rect.width - paddingX;
+    const availableHeight = rect.height - paddingY;
+    
+    // Ensure minimum dimensions with better fallbacks
+    if (availableWidth <= 0 || availableHeight <= 0) {
+        console.warn(`Container ${containerId} has insufficient dimensions:`, { availableWidth, availableHeight });
+        
+        // Different fallbacks based on container type
+        if (containerId.includes('trend') || containerId.includes('officer')) {
+            return { width: 400, height: 150 }; // Wider charts
+        }
+        return { width: 200, height: 150 }; // Standard charts
     }
     
     return {
-        width: Math.max(200, rect.width - 20),
-        height: Math.max(140, rect.height - 20)
+        width: Math.max(150, availableWidth - 10), // Reserve 10px margin
+        height: Math.max(120, availableHeight - 30) // Reserve 30px for title
     };
 }
 
 function clearContainer(container) {
-    while (container.firstChild) {
-        container.removeChild(container.firstChild);
-    }
+    // More efficient clearing
+    container.innerHTML = '';
 }
 
-// Add resize listener for responsive updates
+function getResponsiveMargins(width, height, type = 'standard') {
+    const marginConfigs = {
+        horizontal: {
+            left: Math.min(Math.max(40, width * 0.15), 80),
+            right: Math.min(20, width * 0.05),
+            top: 10,
+            bottom: Math.min(25, height * 0.15)
+        },
+        vertical: {
+            left: Math.min(40, width * 0.15),
+            right: Math.min(20, width * 0.05),
+            top: 10,
+            bottom: Math.min(30, height * 0.2)
+        },
+        trend: {
+            left: Math.min(40, width * 0.08),
+            right: Math.min(40, width * 0.08),
+            top: 15,
+            bottom: Math.min(35, height * 0.2)
+        }
+    };
+    
+    return marginConfigs[type] || marginConfigs.standard;
+}
+
+// Optimized resize handler
 function setupResponsiveCharts() {
     let resizeTimeout;
+    let isResizing = false;
+    
     window.addEventListener('resize', () => {
+        if (isResizing) return;
+        
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
             if (filteredData.length > 0) {
+                isResizing = true;
                 updateDashboard();
+                isResizing = false;
             }
-        }, 300);
+        }, 250); // Reduced timeout for better responsiveness
     });
 }
 
@@ -246,28 +295,27 @@ function updateSummaryStats() {
 function updateStatusChart() {
     const container = document.getElementById('status-chart');
     const { width, height } = getContainerDimensions('status-chart');
+    const margins = getResponsiveMargins(width, height, 'horizontal');
     
     clearContainer(container);
 
     const statusCounts = d3.rollup(filteredData, v => v.length, d => d.otStatus || 'No Status');
     const statusData = Array.from(statusCounts, ([status, count]) => ({
-        status: truncateText(status, 12),
+        status: truncateText(status, Math.floor(width / 20)), // Dynamic truncation
         fullStatus: status,
         count,
         percentage: (count / filteredData.length * 100).toFixed(1)
-    })).sort((a, b) => b.count - a.count).slice(0, 6); // Show top 6 statuses
-
-    console.log('Status chart data:', statusData, 'dimensions:', { width, height });
+    })).sort((a, b) => b.count - a.count).slice(0, Math.min(6, Math.floor(height / 25))); // Dynamic item count
 
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: Math.min(90, width * 0.35),
-            marginRight: 20,
-            marginTop: 10,
-            marginBottom: 20,
-            x: { label: "Count" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 200 ? "Count" : null },
             y: { label: null },
             marks: [
                 Plot.barX(statusData, {
@@ -279,10 +327,14 @@ function updateStatusChart() {
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Status chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 
     // Update legend
@@ -302,23 +354,22 @@ function updateStatusChart() {
 function updateDeltaChart() {
     const container = document.getElementById('delta-chart');
     const { width, height } = getContainerDimensions('delta-chart');
+    const margins = getResponsiveMargins(width, height, 'vertical');
     
     clearContainer(container);
 
     const deltaValues = filteredData.map(d => d.delta).filter(d => !isNaN(d));
     
-    console.log('Delta chart data:', deltaValues.length, 'values', 'dimensions:', { width, height });
-    
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: 40,
-            marginRight: 20,
-            marginTop: 10,
-            marginBottom: 30,
-            x: { label: "Delta (hours)" },
-            y: { label: "Count" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 200 ? "Delta (hours)" : null },
+            y: { label: height > 150 ? "Count" : null },
             marks: [
                 Plot.rectY(deltaValues, Plot.binX({y: "count"}, {
                     x: d => d,
@@ -328,16 +379,21 @@ function updateDeltaChart() {
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Delta chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 }
 
 function updateTrendChart() {
     const container = document.getElementById('trend-chart');
     const { width, height } = getContainerDimensions('trend-chart');
+    const margins = getResponsiveMargins(width, height, 'trend');
     
     clearContainer(container);
 
@@ -353,59 +409,63 @@ function updateTrendChart() {
         ...stats
     })).sort((a, b) => a.date - b.date);
 
-    console.log('Trend chart data:', dailyData, 'dimensions:', { width, height });
-
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: 40,
-            marginRight: 40,
-            marginTop: 20,
-            marginBottom: 30,
-            x: { label: "Date", type: "time" },
-            y: { label: "Hours/Cases" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 300 ? "Date" : null, type: "time" },
+            y: { label: height > 150 ? "Hours/Cases" : null },
             marks: [
                 Plot.line(dailyData, { 
                     x: "date", 
                     y: "totalHours", 
                     stroke: colors.primary, 
-                    strokeWidth: 2
+                    strokeWidth: width > 400 ? 2 : 1.5
                 }),
                 Plot.line(dailyData, { 
                     x: "date", 
                     y: "potentialOT", 
                     stroke: colors.secondary, 
-                    strokeWidth: 2
+                    strokeWidth: width > 400 ? 2 : 1.5
                 }),
                 Plot.dot(dailyData, { 
                     x: "date", 
                     y: "totalHours", 
                     fill: colors.primary, 
-                    r: 3 
+                    r: width > 400 ? 3 : 2
                 }),
                 Plot.dot(dailyData, { 
                     x: "date", 
                     y: "potentialOT", 
                     fill: colors.secondary, 
-                    r: 3 
+                    r: width > 400 ? 3 : 2
                 })
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Trend chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 }
 
 function updateStaffChart() {
     const container = document.getElementById('staff-chart');
     const { width, height } = getContainerDimensions('staff-chart');
+    const margins = getResponsiveMargins(width, height, 'horizontal');
     
     clearContainer(container);
 
+    const maxItems = Math.min(6, Math.floor(height / 25));
     const staffData = d3.rollups(filteredData,
         v => ({
             avgDelta: d3.mean(v, d => d.delta),
@@ -414,22 +474,20 @@ function updateStaffChart() {
         }),
         d => d.staffName
     ).map(([name, stats]) => ({
-        name: truncateText(name, 12),
+        name: truncateText(name, Math.floor(width / 18)),
         fullName: name,
         ...stats
-    })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, 6);
-
-    console.log('Staff chart data:', staffData, 'dimensions:', { width, height });
+    })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, maxItems);
 
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: Math.min(80, width * 0.32),
-            marginRight: 20,
-            marginTop: 10,
-            marginBottom: 20,
-            x: { label: "Avg Delta (hours)" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 200 ? "Avg Delta (hours)" : null },
             y: { label: null },
             marks: [
                 Plot.barX(staffData, {
@@ -441,16 +499,21 @@ function updateStaffChart() {
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Staff chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 }
 
 function updateShiftChart() {
     const container = document.getElementById('shift-chart');
     const { width, height } = getContainerDimensions('shift-chart');
+    const margins = getResponsiveMargins(width, height, 'vertical');
     
     clearContainer(container);
 
@@ -463,18 +526,16 @@ function updateShiftChart() {
         d => d.shiftType
     ).map(([type, stats]) => ({ type, ...stats }));
 
-    console.log('Shift chart data:', shiftData, 'dimensions:', { width, height });
-
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: 40,
-            marginRight: 20,
-            marginTop: 10,
-            marginBottom: 30,
-            x: { label: "Shift Type" },
-            y: { label: "Count" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 200 ? "Shift Type" : null },
+            y: { label: height > 150 ? "Count" : null },
             marks: [
                 Plot.barY(shiftData, {
                     x: "type",
@@ -485,19 +546,25 @@ function updateShiftChart() {
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Shift chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 }
 
 function updateOfficerChart() {
     const container = document.getElementById('officer-chart');
     const { width, height } = getContainerDimensions('officer-chart');
+    const margins = getResponsiveMargins(width, height, 'horizontal');
     
     clearContainer(container);
 
+    const maxItems = Math.min(8, Math.floor(height / 20));
     const officerData = d3.rollups(filteredData,
         v => ({
             total: v.length,
@@ -506,22 +573,20 @@ function updateOfficerChart() {
         }),
         d => d.reportingOfficer
     ).map(([officer, stats]) => ({
-        officer: truncateText(officer, 18),
+        officer: truncateText(officer, Math.floor(width / 25)),
         fullOfficer: officer,
         ...stats
-    })).sort((a, b) => b.total - a.total);
-
-    console.log('Officer chart data:', officerData, 'dimensions:', { width, height });
+    })).sort((a, b) => b.total - a.total).slice(0, maxItems);
 
     try {
         const plot = Plot.plot({
             width,
             height,
-            marginLeft: Math.min(120, width * 0.25),
-            marginRight: 20,
-            marginTop: 20,
-            marginBottom: 20,
-            x: { label: "Cases" },
+            marginLeft: margins.left,
+            marginRight: margins.right,
+            marginTop: margins.top,
+            marginBottom: margins.bottom,
+            x: { label: width > 300 ? "Cases" : null },
             y: { label: null },
             marks: [
                 Plot.barX(officerData, {
@@ -540,10 +605,14 @@ function updateOfficerChart() {
             ]
         });
 
-        container.appendChild(plot);
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.appendChild(plot);
+        container.appendChild(plotContainer);
+        
     } catch (error) {
         console.error('Officer chart error:', error);
-        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:10px;padding:10px;">Chart Error</div>';
     }
 }
 
