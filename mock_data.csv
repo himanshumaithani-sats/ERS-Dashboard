@@ -1,0 +1,46 @@
+Shift Date,Staff No,Staff Name,Shift Start Time,Shift End Time,Clock In Time,Clock Out Time,ShiftTT,ClockTT,Delta,reporting_officer_name,Age,OT? If yes, help us understand why not submitted yet   
+01-06-2025,00115085,Rahim Bin Artali,08:00,16:00,06:45,17:12,8:00,10:27,2:27,Mohd Hafizi Bin Samsudin,2,Staff did not write on OT form
+01-06-2025,00126063,Lee Chun Siang,00:00,08:00,23:05,08:48,8:00,9:43,1:43,Tan Say Hong,2,OT not claimed due to late departure
+01-06-2025,00137458,Nurul Afiqah,16:00,00:00,14:59,01:22,8:00,10:23,2:23,Aminah Binte Harun,1,Not claiming OT
+01-06-2025,00148596,Kumar S/O Rajan,08:00,16:00,06:42,17:26,8:00,10:44,2:44,Lim Boon Kiat,3,System error
+01-06-2025,00159632,Ang Wei Jie,00:00,08:00,23:18,08:53,8:00,9:35,1:35,Chong Mei Ling,2,OT not claimed due to early arrival
+02-06-2025,00115085,Rahim Bin Artali,00:00,08:00,22:51,08:27,8:00,9:36,1:36,Mohd Hafizi Bin Samsudin,2,System error
+02-06-2025,00126063,Lee Chun Siang,08:00,16:00,07:05,17:18,8:00,10:13,2:13,Tan Say Hong,2,OT not claimed due to early arrival
+02-06-2025,00137458,Nurul Afiqah,08:00,16:00,06:37,17:11,8:00,10:34,2:34,Aminah Binte Harun,1,Other reason (Type the reason directly into this cell)
+02-06-2025,00148596,Kumar S/O Rajan,08:00,16:00,06:58,17:22,8:00,10:24,2:24,Lim Boon Kiat,3,Not claiming OT
+02-06-2025,00159632,Ang Wei Jie,00:00,08:00,22:54,08:21,8:00,9:27,1:27,Chong Mei Ling,2,OT missed out
+02-06-2025,00165478,Nurul Aini,08:00,16:00,06:40,16:05,08:00,09:25,01:25,Zainal Abidin,29,OT not claimed due to early arrival
+02-06-2025,00171122,David Lim,00:00,08:00,23:50,08:00,08:00,08:10,00:10,Mohd Hafizi Bin Samsudin,41,
+02-06-2025,00183344,Prakash Rao,16:00,00:00,16:00,00:55,08:00,08:55,00:55,Priya Singh,38,Staff did not write on OT form
+02-06-2025,00195566,Fatimah Binti Yusof,08:00,16:00,08:05,16:01,08:00,07:56,-00:04,Zainal Abidin,52,
+03-06-2025,00201188,Samuel Tan,08:00,16:00,07:55,16:05,08:00,08:10,00:10,Tan Say Hong,22,
+03-06-2025,00217799,Amirah Hassan,16:00,00:00,15:58,00:48,08:00,08:50,00:50,Priya Singh,33,Not claiming OT
+03-06-2025,00115085,Rahim Bin Artali,00:00,08:00,23:45,08:10,08:00,08:25,00:25,Mohd Hafizi Bin Samsudin,34,
+04-06-2025,00134578,Siti Nurhaliza,08:00,16:00,07:59,16:03,08:00,08:04,00:04,Zainal Abidin,45,
+04-06-2025,00148921,Arun Kumar,16:00,00:00,15:30,00:15,08:00,08:45,00:45,Priya Singh,25,OT not claimed due to early arrival
+04-06-2025,00229900,Rajesh Singh,00:00,08:00,23:58,09:15,08:00,09:17,01:17,Mohd Hafizi Bin Samsudin,48,OT missed out
+05-06-2025,00234455,Li Na,08:00,16:00,07:50,17:00,08:00,09:10,01:10,Tan Say Hong,30,
+05-06-2025,00165478,Nurul Aini,08:00,16:00,07:55,16:00,08:00,08:05,00:05,Zainal Abidin,29,
+06-06-2025,00171122,David Lim,00:00,08:00,23:59,08:01,08:00,08:02,00:02,Mohd Hafizi Bin Samsudin,41,
+06-06-2025,00248811,Kevin Peterson,16:00,00:00,15:50,01:20,08:00,09:30,01:30,Priya Singh,36,System error
+07-06-2025,00195566,Fatimah Binti Yusof,08:00,16:00,07:30,16:35,08:00,09:05,01:05,Zainal Abidin,52,Not claiming OT
+08-06-2025,00201188,Samuel Tan,08:00,16:00,07:58,16:02,08:00,08:04,00:04,Tan Say Hong,22,
+09-06-2025,00251234,Aisha Binti Ismail,00:00,08:00,23:55,08:50,08:00,08:55,00:55,Mohd Hafizi Bin Samsudin,27,Staff did not write on OT form
+10-06-2025,00126063,Lee Chun Siang,08:00,16:00,07:59,16:01,08:00,08:02,00:02,Tan Say Hong,28,
+10-06-2025,00151234,Chen Wei,16:00,00:00,16:05,00:03,08:00,07:58,-00:02,Tan Say Hong,31,
+11-06-2025,00183344,Prakash Rao,16:00,00:00,15:55,01:10,08:00,09:15,01:15,Priya Singh,38,OT missed out
+12-06-2025,00229900,Rajesh Singh,00:00,08:00,23:40,08:05,08:00,08:25,00:25,Mohd Hafizi Bin Samsudin,48,
+13-06-2025,00234455,Li Na,08:00,16:00,07:58,17:55,08:00,09:57,01:57,Tan Say Hong,30,OT not claimed due to late departure
+14-06-2025,00248811,Kevin Peterson,16:00,00:00,16:00,00:05,08:00,08:05,00:05,Priya Singh,36,
+15-06-2025,00251234,Aisha Binti Ismail,00:00,08:00,23:59,09:02,08:00,09:03,01:03,Mohd Hafizi Bin Samsudin,27,Staff did not write on OT form
+16-06-2025,00115085,Rahim Bin Artali,00:00,08:00,23:50,08:00,08:00,08:10,00:10,Mohd Hafizi Bin Samsudin,34,
+16-06-2025,00134578,Siti Nurhaliza,08:00,16:00,07:15,16:20,08:00,09:05,01:05,Zainal Abidin,45,OT not claimed due to early arrival
+16-06-2025,00148921,Arun Kumar,16:00,00:00,15:58,00:30,08:00,08:32,00:32,Priya Singh,25,Not claiming OT
+17-06-2025,00115085,Rahim Bin Artali,00:00,08:00,23:37,09:08,08:00,09:31,01:31,Mohd Hafizi Bin Samsudin,34,OT missed out
+17-06-2025,00126063,Lee Chun Siang,08:00,16:00,06:38,16:49,08:00,10:11,02:11,Tan Say Hong,28,OT not claimed due to early arrival
+17-06-2025,00165478,Nurul Aini,08:00,16:00,08:01,17:33,08:00,09:32,01:32,Zainal Abidin,29,OT not claimed due to late departure
+17-06-2025,00183344,Prakash Rao,16:00,00:00,15:55,00:05,08:00,08:10,00:10,Priya Singh,38,
+17-06-2025,00217799,Amirah Hassan,16:00,00:00,15:45,01:45,08:00,10:00,02:00,Priya Singh,33,System error
+17-06-2025,00234455,Li Na,08:00,16:00,07:50,16:10,08:00,08:20,00:20,Tan Say Hong,30,
+17-06-2025,00115085,Rahim Bin Artali,00:00,08:00,23:37,09:08,08:00,09:31,01:31,Mohd Hafizi Bin Samsudin,2,Staff did not write on OT form
+17-06-2025,00126063,Lee Chun Siang,08:00,16:00,06:38,16:49,08:00,10:11,02:11,Tan Say Hong,2,OT missed out

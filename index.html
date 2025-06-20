@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERS Overtime Analysis Dashboard | SATS Singapore Pre-Set</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            color: #2c3e50;
+        }
+
+        .title h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .title p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .stats-overview {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-container.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .chart-subtitle {
+            font-size: 1rem;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .axis text {
+            font-size: 12px;
+            fill: #666;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #ddd;
+            shape-rendering: crispEdges;
+        }
+
+        .grid line {
+            stroke: #e0e0e0;
+            stroke-dasharray: 3,3;
+        }
+
+        .grid path {
+            stroke-width: 0;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            margin: 2rem auto;
+            max-width: 1400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select {
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .insights-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .insight-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats-overview {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="title">
+                <h1>ERS Overtime Analysis Dashboard</h1>
+                <p>SATS Singapore | Food Solutions Department | Pre-Set Org Unit</p>
+            </div>
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-records">0</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-delta">0</div>
+                    <div class="stat-label">Avg Delta (hrs)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="potential-ot">0</div>
+                    <div class="stat-label">Potential OT Cases</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label>Date Range:</label>
+            <select id="date-filter">
+                <option value="all">All Dates</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Reporting Officer:</label>
+            <select id="officer-filter">
+                <option value="all">All Officers</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>OT Status:</label>
+            <select id="status-filter">
+                <option value="all">All Status</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Staff:</label>
+            <select id="staff-filter">
+                <option value="all">All Staff</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="chart-container">
+            <div class="chart-title">OT Status Distribution</div>
+            <div class="chart-subtitle">Analysis of overtime claim status categories</div>
+            <div id="ot-status-chart"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Delta Time Distribution</div>
+            <div class="chart-subtitle">Distribution of time differences (hours)</div>
+            <div id="delta-histogram"></div>
+        </div>
+
+        <div class="chart-container full-width">
+            <div class="chart-title">Daily Overtime Trend</div>
+            <div class="chart-subtitle">Overtime hours and cases by date</div>
+            <div id="daily-trend"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Staff Performance</div>
+            <div class="chart-subtitle">Average delta by staff member</div>
+            <div id="staff-performance"></div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">Shift Analysis</div>
+            <div class="chart-subtitle">Overtime patterns by shift type</div>
+            <div id="shift-analysis"></div>
+        </div>
+
+        <div class="chart-container full-width">
+            <div class="chart-title">Reporting Officer Overview</div>
+            <div class="chart-subtitle">OT cases managed by each reporting officer</div>
+            <div id="officer-overview"></div>
+        </div>
+    </div>
+
+    <div class="insights-panel">
+        <div class="chart-title">Key Insights</div>
+        <div class="insights-grid">
+            <div class="insight-card">
+                <div class="insight-value" id="highest-delta">0h</div>
+                <div class="insight-label">Highest Single Delta</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-value" id="most-common-status">-</div>
+                <div class="insight-label">Most Common OT Status</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-value" id="total-potential-hours">0h</div>
+                <div class="insight-label">Total Potential OT Hours</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-value" id="avg-staff-delta">0h</div>
+                <div class="insight-label">Average Staff Delta</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html> 
