@@ -61,35 +61,65 @@ function truncateText(text, maxLength) {
 // Data loading and processing
 async function loadData() {
     try {
-        const csvData = await d3.csv('mock_data.csv');
+        console.log('Attempting to load CSV data...');
         
-        data = csvData.map(d => ({
-            date: new Date(d['Shift Date'].split('-').reverse().join('-')),
-            staffNo: d['Staff No'],
-            staffName: d['Staff Name'],
-            shiftStart: d['Shift Start Time'],
-            shiftEnd: d['Shift End Time'],
-            clockIn: d['Clock In Time'],
-            clockOut: d['Clock Out Time'],
-            shiftTT: parseTime(d['ShiftTT']),
-            clockTT: parseTime(d['ClockTT']),
-            delta: parseDelta(d['Delta']),
-            reportingOfficer: d['reporting_officer_name'],
-            age: +d['Age'] || 0,
-            otStatus: d['OT Status'] || '',
-            shiftType: getShiftType(d['Shift Start Time'], d['Shift End Time']),
-            isPotentialOT: parseDelta(d['Delta']) > 0.5
-        }));
+        // Check if we can access the CSV file
+        const response = await fetch('mock_data.csv');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const csvData = await d3.csv('mock_data.csv');
+        console.log('Raw CSV data loaded:', csvData.length, 'rows');
+        console.log('First row sample:', csvData[0]);
+        
+        if (csvData.length === 0) {
+            throw new Error('CSV file is empty or could not be parsed');
+        }
+        
+        data = csvData.map(d => {
+            // Parse date properly - format is DD-MM-YY
+            const dateParts = d['Shift Date'].split('-');
+            const parsedDate = new Date(`20${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+            
+            return {
+                date: parsedDate,
+                staffNo: d['Staff No'],
+                staffName: d['Staff Name'],
+                shiftStart: d['Shift Start Time'],
+                shiftEnd: d['Shift End Time'],
+                clockIn: d['Clock In Time'],
+                clockOut: d['Clock Out Time'],
+                shiftTT: parseTime(d['ShiftTT']),
+                clockTT: parseTime(d['ClockTT']),
+                delta: parseDelta(d['Delta']),
+                reportingOfficer: d['reporting_officer_name'],
+                age: +d['Age'] || 0,
+                otStatus: d['OT Status'] || '',
+                shiftType: getShiftType(d['Shift Start Time'], d['Shift End Time']),
+                isPotentialOT: parseDelta(d['Delta']) > 0.5
+            };
+        });
 
         filteredData = [...data];
-        console.log('Data loaded:', data.length, 'records');
+        console.log('Data processed successfully:', data.length, 'records');
+        console.log('Sample processed record:', data[0]);
         
         initializeFilters();
         updateDashboard();
         
     } catch (error) {
-        console.error('Error loading data:', error);
-        alert('Error loading data. Please ensure mock_data.csv is in the same directory.');
+        console.error('Detailed error loading data:', error);
+        
+        // Show user-friendly error message
+        const errorMsg = `Error loading data: ${error.message}\n\nPossible solutions:\n1. Make sure you're running this from a web server (not file:// protocol)\n2. Check that mock_data.csv is in the same directory\n3. Try using a local development server like Python's http.server or Node.js live-server`;
+        
+        alert(errorMsg);
+        
+        // Also display error on the page
+        document.getElementById('total-records').textContent = 'Error';
+        document.getElementById('avg-delta').textContent = 'Error';
+        document.getElementById('potential-ot').textContent = 'Error';
     }
 }
 
@@ -184,26 +214,27 @@ function updateStatusChart() {
 
     const statusCounts = d3.rollup(filteredData, v => v.length, d => d.otStatus || 'No Status');
     const statusData = Array.from(statusCounts, ([status, count]) => ({
-        status: truncateText(status, 15),
+        status: truncateText(status, 12),
         fullStatus: status,
-        count
-    })).sort((a, b) => b.count - a.count);
+        count,
+        percentage: (count / filteredData.length * 100).toFixed(1)
+    })).sort((a, b) => b.count - a.count).slice(0, 6); // Show top 6 statuses
 
     const plot = Plot.plot({
         width: 250,
-        height: 180,
-        marginLeft: 0,
-        marginRight: 0,
+        height: 160,
+        marginLeft: 90,
+        marginRight: 20,
         marginTop: 10,
-        marginBottom: 10,
+        marginBottom: 20,
+        x: { label: "Count" },
+        y: { label: null },
         marks: [
-            Plot.arc(statusData, {
-                innerRadius: 30,
-                outerRadius: 80,
-                startAngle: 0,
-                endAngle: (d, i) => 2 * Math.PI * d.count / d3.sum(statusData, d => d.count),
+            Plot.barX(statusData, {
+                x: "count",
+                y: "status",
                 fill: d => colors.status[d.fullStatus] || colors.primary,
-                title: d => `${d.fullStatus}: ${d.count} (${(d.count / filteredData.length * 100).toFixed(1)}%)`
+                title: d => `${d.fullStatus}: ${d.count} (${d.percentage}%)`
             })
         ]
     });
@@ -229,6 +260,15 @@ function updateDeltaChart() {
     container.innerHTML = '';
 
     const deltaValues = filteredData.map(d => d.delta).filter(d => !isNaN(d));
+    
+    // Create histogram data manually for better control
+    const bins = d3.bin().thresholds(8)(deltaValues);
+    const histogramData = bins.map(bin => ({
+        x0: bin.x0,
+        x1: bin.x1,
+        count: bin.length,
+        midpoint: (bin.x0 + bin.x1) / 2
+    }));
 
     const plot = Plot.plot({
         width: 250,
@@ -237,17 +277,16 @@ function updateDeltaChart() {
         marginRight: 20,
         marginTop: 10,
         marginBottom: 30,
-        x: { label: "Delta (hours)", tickFormat: d => formatDuration(d) },
+        x: { label: "Delta (hours)" },
         y: { label: "Count" },
         marks: [
-            Plot.rectY(deltaValues, 
-                Plot.binX({ y: "count" }, { 
-                    x: d => d, 
-                    fill: colors.primary, 
-                    fillOpacity: 0.7,
-                    title: d => `Range: ${formatDuration(d.x1 - d.x2)}\nCount: ${d.length}`
-                })
-            )
+            Plot.barY(histogramData, {
+                x: "midpoint",
+                y: "count",
+                fill: colors.primary,
+                fillOpacity: 0.7,
+                title: d => `Range: ${formatDuration(d.x0)} to ${formatDuration(d.x1)}\nCount: ${d.count}`
+            })
         ]
     });
 
