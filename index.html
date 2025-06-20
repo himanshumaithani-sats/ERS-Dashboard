@@ -113,10 +113,11 @@
             flex: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: 1fr 1fr;
+            grid-template-rows: repeat(2, 1fr);
             gap: 0.5rem;
             min-height: 0;
-            overflow: hidden;
+            overflow: visible;
+            height: 100%;
         }
 
         .chart-panel {
@@ -126,9 +127,11 @@
             padding: 0.5rem;
             display: flex;
             flex-direction: column;
-            min-height: 0;
+            min-height: 200px;
             position: relative;
             z-index: 10;
+            overflow: visible;
+            border: 1px solid #ccc;
         }
 
         .chart-panel.span-2 {
@@ -150,8 +153,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
+            min-height: 150px;
         }
 
         .plot-container {
@@ -228,6 +232,8 @@
             .main-content {
                 grid-template-columns: repeat(2, 1fr);
                 grid-template-rows: repeat(3, 1fr);
+                height: auto;
+                min-height: 600px;
             }
             
             .chart-panel.span-2 {

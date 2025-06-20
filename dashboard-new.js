@@ -65,31 +65,27 @@ function getContainerDimensions(containerId) {
         return { width: 250, height: 160 };
     }
 
-    const rect = container.getBoundingClientRect();
-    const style = window.getComputedStyle(container);
+    const panel = container.closest('.chart-panel');
+    if (!panel) {
+        console.warn(`Panel for ${containerId} not found`);
+        return { width: 250, height: 160 };
+    }
+
+    const rect = panel.getBoundingClientRect();
     
-    // Account for padding
+    // Make sure the panel is actually visible
+    if (rect.width === 0 || rect.height === 0) {
+        console.warn(`Panel ${containerId} has zero dimensions`);
+        return { width: 250, height: 160 };
+    }
+    
+    const style = window.getComputedStyle(panel);
     const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
     const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
     
-    // Calculate available space
-    const availableWidth = rect.width - paddingX;
-    const availableHeight = rect.height - paddingY;
-    
-    // Ensure minimum dimensions with better fallbacks
-    if (availableWidth <= 0 || availableHeight <= 0) {
-        console.warn(`Container ${containerId} has insufficient dimensions:`, { availableWidth, availableHeight });
-        
-        // Different fallbacks based on container type
-        if (containerId.includes('trend') || containerId.includes('officer')) {
-            return { width: 400, height: 150 }; // Wider charts
-        }
-        return { width: 200, height: 150 }; // Standard charts
-    }
-    
     return {
-        width: Math.max(150, availableWidth - 10), // Reserve 10px margin
-        height: Math.max(120, availableHeight - 30) // Reserve 30px for title
+        width: Math.max(200, rect.width - paddingX - 20),
+        height: Math.max(150, rect.height - paddingY - 40)
     };
 }
 
@@ -121,6 +117,28 @@ function getResponsiveMargins(width, height, type = 'standard') {
     };
     
     return marginConfigs[type] || marginConfigs.standard;
+}
+
+// Debug function to check chart container visibility
+function debugChartContainers() {
+    const containers = [
+        'status-chart', 'delta-chart', 'trend-chart', 
+        'staff-chart', 'shift-chart', 'officer-chart'
+    ];
+    
+    console.log('=== Chart Container Debug ===');
+    containers.forEach(id => {
+        const container = document.getElementById(id);
+        const panel = container?.closest('.chart-panel');
+        
+        console.log(`${id}:`, {
+            container: container ? 'found' : 'missing',
+            dimensions: container ? container.getBoundingClientRect() : 'N/A',
+            panel: panel ? 'found' : 'missing',
+            panelVisible: panel ? window.getComputedStyle(panel).display : 'N/A',
+            panelDimensions: panel ? panel.getBoundingClientRect() : 'N/A'
+        });
+    });
 }
 
 // Optimized resize handler
@@ -280,6 +298,12 @@ function updateDashboard() {
     updateShiftChart();
     updateOfficerChart();
     updateInsights();
+    
+    // Debug after charts are created
+    setTimeout(() => {
+        console.log('=== Debug after chart updates ===');
+        debugChartContainers();
+    }, 500);
 }
 
 function updateSummaryStats() {
@@ -642,6 +666,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Plot methods available:', Object.getOwnPropertyNames(Plot));
+    
+    // Debug chart containers after a delay
+    setTimeout(debugChartContainers, 1000);
     
     // Setup responsive chart updates
     setupResponsiveCharts();
