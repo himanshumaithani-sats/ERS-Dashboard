@@ -58,6 +58,41 @@ function truncateText(text, maxLength) {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
 
+function getContainerDimensions(containerId) {
+    const container = document.getElementById(containerId);
+    const rect = container.getBoundingClientRect();
+    
+    // Ensure container has actual dimensions
+    if (rect.width === 0 || rect.height === 0) {
+        console.warn(`Container ${containerId} has zero dimensions`);
+        return { width: 250, height: 160 }; // fallback
+    }
+    
+    return {
+        width: Math.max(200, rect.width - 20),
+        height: Math.max(140, rect.height - 20)
+    };
+}
+
+function clearContainer(container) {
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+}
+
+// Add resize listener for responsive updates
+function setupResponsiveCharts() {
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (filteredData.length > 0) {
+                updateDashboard();
+            }
+        }, 300);
+    });
+}
+
 // Data loading and processing
 async function loadData() {
     try {
@@ -210,7 +245,9 @@ function updateSummaryStats() {
 
 function updateStatusChart() {
     const container = document.getElementById('status-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('status-chart');
+    
+    clearContainer(container);
 
     const statusCounts = d3.rollup(filteredData, v => v.length, d => d.otStatus || 'No Status');
     const statusData = Array.from(statusCounts, ([status, count]) => ({
@@ -220,13 +257,13 @@ function updateStatusChart() {
         percentage: (count / filteredData.length * 100).toFixed(1)
     })).sort((a, b) => b.count - a.count).slice(0, 6); // Show top 6 statuses
 
-    console.log('Status chart data:', statusData);
+    console.log('Status chart data:', statusData, 'dimensions:', { width, height });
 
     try {
         const plot = Plot.plot({
-            width: 250,
-            height: 160,
-            marginLeft: 90,
+            width,
+            height,
+            marginLeft: Math.min(90, width * 0.35),
             marginRight: 20,
             marginTop: 10,
             marginBottom: 20,
@@ -245,7 +282,7 @@ function updateStatusChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Status chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 
     // Update legend
@@ -264,16 +301,18 @@ function updateStatusChart() {
 
 function updateDeltaChart() {
     const container = document.getElementById('delta-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('delta-chart');
+    
+    clearContainer(container);
 
     const deltaValues = filteredData.map(d => d.delta).filter(d => !isNaN(d));
     
-    console.log('Delta chart data:', deltaValues.length, 'values');
+    console.log('Delta chart data:', deltaValues.length, 'values', 'dimensions:', { width, height });
     
     try {
         const plot = Plot.plot({
-            width: 250,
-            height: 160,
+            width,
+            height,
             marginLeft: 40,
             marginRight: 20,
             marginTop: 10,
@@ -292,13 +331,15 @@ function updateDeltaChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Delta chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 }
 
 function updateTrendChart() {
     const container = document.getElementById('trend-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('trend-chart');
+    
+    clearContainer(container);
 
     const dailyData = d3.rollups(filteredData, 
         v => ({
@@ -312,12 +353,12 @@ function updateTrendChart() {
         ...stats
     })).sort((a, b) => a.date - b.date);
 
-    console.log('Trend chart data:', dailyData);
+    console.log('Trend chart data:', dailyData, 'dimensions:', { width, height });
 
     try {
         const plot = Plot.plot({
-            width: 520,
-            height: 160,
+            width,
+            height,
             marginLeft: 40,
             marginRight: 40,
             marginTop: 20,
@@ -355,13 +396,15 @@ function updateTrendChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Trend chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 }
 
 function updateStaffChart() {
     const container = document.getElementById('staff-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('staff-chart');
+    
+    clearContainer(container);
 
     const staffData = d3.rollups(filteredData,
         v => ({
@@ -376,13 +419,13 @@ function updateStaffChart() {
         ...stats
     })).sort((a, b) => b.avgDelta - a.avgDelta).slice(0, 6);
 
-    console.log('Staff chart data:', staffData);
+    console.log('Staff chart data:', staffData, 'dimensions:', { width, height });
 
     try {
         const plot = Plot.plot({
-            width: 250,
-            height: 160,
-            marginLeft: 80,
+            width,
+            height,
+            marginLeft: Math.min(80, width * 0.32),
             marginRight: 20,
             marginTop: 10,
             marginBottom: 20,
@@ -401,13 +444,15 @@ function updateStaffChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Staff chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 }
 
 function updateShiftChart() {
     const container = document.getElementById('shift-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('shift-chart');
+    
+    clearContainer(container);
 
     const shiftData = d3.rollups(filteredData,
         v => ({
@@ -418,12 +463,12 @@ function updateShiftChart() {
         d => d.shiftType
     ).map(([type, stats]) => ({ type, ...stats }));
 
-    console.log('Shift chart data:', shiftData);
+    console.log('Shift chart data:', shiftData, 'dimensions:', { width, height });
 
     try {
         const plot = Plot.plot({
-            width: 250,
-            height: 160,
+            width,
+            height,
             marginLeft: 40,
             marginRight: 20,
             marginTop: 10,
@@ -443,13 +488,15 @@ function updateShiftChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Shift chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 }
 
 function updateOfficerChart() {
     const container = document.getElementById('officer-chart');
-    container.innerHTML = '';
+    const { width, height } = getContainerDimensions('officer-chart');
+    
+    clearContainer(container);
 
     const officerData = d3.rollups(filteredData,
         v => ({
@@ -464,13 +511,13 @@ function updateOfficerChart() {
         ...stats
     })).sort((a, b) => b.total - a.total);
 
-    console.log('Officer chart data:', officerData);
+    console.log('Officer chart data:', officerData, 'dimensions:', { width, height });
 
     try {
         const plot = Plot.plot({
-            width: 520,
-            height: 160,
-            marginLeft: 120,
+            width,
+            height,
+            marginLeft: Math.min(120, width * 0.25),
             marginRight: 20,
             marginTop: 20,
             marginBottom: 20,
@@ -496,7 +543,7 @@ function updateOfficerChart() {
         container.appendChild(plot);
     } catch (error) {
         console.error('Officer chart error:', error);
-        container.innerHTML = '<p style="text-align:center; color:red; font-size:12px;">Chart Error</p>';
+        container.innerHTML = '<div style="text-align:center;color:red;font-size:12px;">Chart Error</div>';
     }
 }
 
@@ -526,5 +573,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Plot methods available:', Object.getOwnPropertyNames(Plot));
+    
+    // Setup responsive chart updates
+    setupResponsiveCharts();
+    
+    // Load data and initialize dashboard
     loadData();
 }); 
