@@ -230,10 +230,12 @@ function updateStatusChart() {
         x: { label: "Count" },
         y: { label: null },
         marks: [
-            Plot.barX(statusData, {
-                x: "count",
+            Plot.rect(statusData, {
+                x1: 0,
+                x2: "count",
                 y: "status",
                 fill: d => colors.status[d.fullStatus] || colors.primary,
+                tip: true,
                 title: d => `${d.fullStatus}: ${d.count} (${d.percentage}%)`
             })
         ]
@@ -280,9 +282,11 @@ function updateDeltaChart() {
         x: { label: "Delta (hours)" },
         y: { label: "Count" },
         marks: [
-            Plot.barY(histogramData, {
-                x: "midpoint",
-                y: "count",
+            Plot.rect(histogramData, {
+                x1: "x0",
+                x2: "x1",
+                y1: 0,
+                y2: "count",
                 fill: colors.primary,
                 fillOpacity: 0.7,
                 title: d => `Range: ${formatDuration(d.x0)} to ${formatDuration(d.x1)}\nCount: ${d.count}`
@@ -320,14 +324,14 @@ function updateTrendChart() {
         y: { label: "Hours/Cases" },
         color: { legend: true },
         marks: [
-            Plot.lineY(dailyData, { 
+            Plot.line(dailyData, { 
                 x: "date", 
                 y: "totalHours", 
                 stroke: colors.primary, 
                 strokeWidth: 2,
                 title: d => `${d.date.toLocaleDateString()}: ${d.totalHours.toFixed(1)}h`
             }),
-            Plot.lineY(dailyData, { 
+            Plot.line(dailyData, { 
                 x: "date", 
                 y: "potentialOT", 
                 stroke: colors.secondary, 
@@ -379,8 +383,9 @@ function updateStaffChart() {
         x: { label: "Avg Delta (hours)" },
         y: { label: null },
         marks: [
-            Plot.barX(staffData, {
-                x: "avgDelta",
+            Plot.rect(staffData, {
+                x1: 0,
+                x2: "avgDelta",
                 y: "name",
                 fill: colors.accent,
                 title: d => `${d.fullName}: ${formatDuration(d.avgDelta)} (${d.count} records, ${d.potentialOT} potential OT)`
@@ -414,9 +419,10 @@ function updateShiftChart() {
         x: { label: "Shift Type" },
         y: { label: "Count" },
         marks: [
-            Plot.barY(shiftData, {
+            Plot.rect(shiftData, {
                 x: "type",
-                y: "count",
+                y1: 0,
+                y2: "count",
                 fill: (d, i) => [colors.primary, colors.secondary, colors.accent, colors.warning][i % 4],
                 title: d => `${d.type}: ${d.count} records\nAvg Delta: ${formatDuration(d.avgDelta)}\nPotential OT: ${d.potentialOT}`
             })
@@ -454,15 +460,17 @@ function updateOfficerChart() {
         y: { label: null },
         color: { legend: true },
         marks: [
-            Plot.barX(officerData, {
-                x: "total",
+            Plot.rect(officerData, {
+                x1: 0,
+                x2: "total",
                 y: "officer",
                 fill: colors.primary,
                 fillOpacity: 0.3,
                 title: d => `${d.fullOfficer}: ${d.total} total cases`
             }),
-            Plot.barX(officerData, {
-                x: "potentialOT",
+            Plot.rect(officerData, {
+                x1: 0,
+                x2: "potentialOT",
                 y: "officer",
                 fill: colors.secondary,
                 title: d => `${d.fullOfficer}: ${d.potentialOT} potential OT cases\nAvg Delta: ${formatDuration(d.avgDelta)}`
@@ -488,5 +496,16 @@ function updateInsights() {
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking dependencies...');
+    console.log('D3 available:', typeof d3 !== 'undefined');
+    console.log('Plot available:', typeof Plot !== 'undefined');
+    
+    if (typeof Plot === 'undefined') {
+        console.error('Observable Plot not loaded!');
+        alert('Observable Plot library failed to load. Please check your internet connection and try refreshing.');
+        return;
+    }
+    
+    console.log('Plot methods available:', Object.getOwnPropertyNames(Plot));
     loadData();
 }); 
